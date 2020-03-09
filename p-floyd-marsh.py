@@ -1,3 +1,4 @@
+#Jerardo Velazquez
 from mpi4py import MPI
 import timeit
 import math
@@ -28,7 +29,9 @@ def fw(graph):
 
     if rank == 0:
         for k in range(endingRow, len(graph)):
-            graph[k] - comm.recv(source = ownerofK, tag = k)
+            #print(f'recv row {k} from {ownerofK}')
+            ownerofK = (threadsPerRow * k)
+            graph[k] = comm.recv(source = ownerofK, tag = k)
     else:
         for k in range(startingRow, endingRow):
             comm.send(graph[k], dest = 0, tag = k)
@@ -38,12 +41,19 @@ start = timeit.default_timer()
 
 #call function
 fw(matrix)
-print(matrix)
+#print(matrix)
 
 #stop timer
 stop = timeit.default_timer()
-#print time
-print('Time: ', stop - start)
 
-#write to a file called results.txt
-print (matrix, file = out_file)
+
+comm = MPI.COMM_WORLD
+rank = comm.Get_rank()
+
+if rank == 1:
+    #write to a file called results.txt
+    print (matrix, file = out_file)
+
+#print time
+print('Thread', rank)
+print('Time: ', stop - start)
